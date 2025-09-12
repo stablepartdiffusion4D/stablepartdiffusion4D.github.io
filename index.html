@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Stable Part Diffusion 4D: Multi-View RGB and Kinematic Parts Video Generation — Turning single images or videos into articulated 4D assets.">
+  <meta name="keywords" content="SP4D, Stable Part Diffusion, 4D Generation, Kinematic Parts, Multi-view Video Diffusion, Rigging, Skinning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stable Part Diffusion 4D: Multi-View RGB and Kinematic Parts Video Generation</title>
+
+  <!-- GA -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date()); gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <!-- Fonts & CSS -->
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/stability.png">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+
+  <!-- Minimal polish -->
+  <style>
+    :root{
+      --primary:#2563eb; --primary-2:#1d4ed8; --accent:#10b981;
+      --text:#111827; --muted:#6b7280; --line:#e5e7eb; --soft:#f8fafc;
+      --r:10px; --shadow:0 8px 16px rgba(0,0,0,.08);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter','Google Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto; color:var(--text); background:#fff; padding-top:3.5rem}
+    .navbar{background:rgba(255,255,255,.92)!important; backdrop-filter:saturate(1.2) blur(16px); border-bottom:1px solid var(--line)}
+    .navbar-item:hover{background:#f3f4f6}
+    .hero{padding:3.25rem 0; border-bottom:1px solid var(--line)}
+    .publication-title{font-weight:800}
+    .stability-brand{background:linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #ec4899 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-weight:800}
+    .badge{display:inline-flex; gap:.5rem; align-items:center; border:1px solid var(--line); border-radius:999px; padding:.5rem .9rem; background:#fff}
+    .big-cta .button{border:none; border-radius:10px; box-shadow:var(--shadow)}
+    .inst-logos{display:flex; justify-content:center; align-items:center; gap:4rem; margin-top:2rem; flex-wrap:wrap}
+    .inst-logos a{transition:all 0.2s ease}
+    .inst-logos a:hover{transform:translateY(-2px)}
+    .inst-logos img{height:80px; max-width:280px; object-fit:contain; transition:all 0.2s ease}
+    .section.alt{background:var(--soft)}
+    .card-lite{border:1px solid var(--line); border-radius:var(--r); background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .figure-note{font-size:.95rem; color:#4b5563; background:#f8fafc; border-left:4px solid var(--primary); padding:1rem; border-radius:8px}
+    .kicker{letter-spacing:.08em; text-transform:uppercase; color:#64748b; font-weight:700; font-size:.85rem}
+    #BibTeX{background:#f8fafc; border:1px solid #e5e7eb; color:#374151; border-radius:14px; padding:2rem}
+    #BibTeX code{color:#111827; font-family:ui-monospace,SFMono-Regular,"SF Mono",Monaco,Inconsolata,"Liberation Mono","Consolas",monospace}
+    .footer{border-top:1px solid var(--line); background:#fafafa}
+    .video-container{border:1px solid #e5e7eb; border-radius:12px; overflow:hidden}
+    .gallery-section{margin-bottom:2rem}
+    .gallery-section .title{margin-bottom:1.5rem; font-weight:600; color:var(--text)}
+    .gif-gallery{background:#fff; border:1px solid var(--line); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem}
+    .gif-gallery img{border-radius:8px; width:100%; max-width:800px; height:auto; box-shadow:0 2px 8px rgba(0,0,0,.1); margin:0 auto; display:block; transition:all 0.3s ease}
+    .gif-gallery .column{margin-bottom:1rem}
+    /* Enhanced scroll animations */
+    .animated{animation:slideInUp 0.8s ease-out}
+    @keyframes slideInUp{from{opacity:0;transform:translateY(40px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+    figure.image:hover{transform:translateY(-3px); box-shadow:0 12px 24px rgba(0,0,0,.15)}
+    /* Carousel styling - Minimal & Elegant */
+    .video-carousel{position:relative; margin:3rem 0 2rem 0; width:100%; max-width:800px; margin-left:auto; margin-right:auto; background:transparent; padding:1rem 0; cursor:pointer; transition:all 0.3s ease}
+    .video-carousel::before{content:"🔄 Scroll to navigate"; position:absolute; top:-5px; right:0px; font-size:11px; color:#9ca3af; background:rgba(248,250,252,0.9); padding:3px 8px; border-radius:12px; opacity:0; pointer-events:none; transition:opacity 0.3s ease; border:1px solid #e5e7eb}
+    .video-carousel:hover::before{opacity:0.8}
+    .video-carousel:focus{outline:none}
+    .video-carousel:hover{background:rgba(248,250,252,0.3); border-radius:16px}
+    .carousel-wrapper{position:relative; width:100%}
+    .carousel-track{display:block; position:relative}
+    .carousel-slide{display:none; text-align:center; width:100%; transition:all 0.3s ease}
+    .carousel-slide.active{display:block}
+    .carousel-slide img{max-width:100%; height:auto; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.12); margin:0 auto; display:block; transition:all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); cursor:pointer}
+    .carousel-slide img:hover{transform:scale(1.05) translateY(-5px); box-shadow:0 8px 24px rgba(0,0,0,.2); border-radius:12px}
+    .carousel-nav{position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.3s ease; z-index:50; box-shadow:0 2px 12px rgba(0,0,0,.08); backdrop-filter:blur(8px)}
+    .carousel-nav.prev{left:-15px; opacity:0.8}
+    .carousel-nav.next{right:-15px; opacity:0.8}
+    .carousel-nav:hover{background:rgba(255,255,255,0.95); transform:translateY(-50%) scale(1.15); box-shadow:0 4px 20px rgba(37,99,235,.15); opacity:1}
+    .carousel-nav i{color:#374151; font-size:16px}
+    .carousel-dots{display:flex; justify-content:center; gap:10px; margin-top:2rem}
+    .carousel-dot{width:8px; height:8px; border-radius:50%; background:#d1d5db; cursor:pointer; transition:all 0.3s ease; opacity:0.7}
+    .carousel-dot.active{background:var(--primary); transform:scale(1.4); opacity:1; box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+    .carousel-dot:hover{background:#9ca3af; transform:scale(1.2); opacity:1}
+    /* Image Modal - Click to enlarge */
+    .image-modal{display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(4px)}
+    .image-modal.active{display:flex; align-items:center; justify-content:center; animation:modalFadeIn 0.3s ease-out}
+    .image-modal img{max-width:95%; max-height:95%; object-fit:contain; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,.5)}
+    .image-modal .modal-close{position:absolute; top:20px; right:30px; color:#fff; font-size:32px; font-weight:bold; cursor:pointer; background:rgba(0,0,0,0.5); border-radius:50%; width:50px; height:50px; display:flex; align-items:center; justify-content:center; transition:all 0.3s ease}
+    .image-modal .modal-close:hover{background:rgba(0,0,0,0.8); transform:scale(1.1)}
+    .image-modal .modal-nav{position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.6); border:none; border-radius:50%; width:60px; height:60px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.3s ease; color:#fff; font-size:24px}
+    .image-modal .modal-nav:hover{background:rgba(0,0,0,0.8); transform:translateY(-50%) scale(1.1)}
+    .image-modal .modal-nav.prev{left:30px}
+    .image-modal .modal-nav.next{right:30px}
+    .image-modal .modal-info{position:absolute; bottom:30px; left:50%; transform:translateX(-50%); color:#fff; text-align:center; background:rgba(0,0,0,0.6); padding:12px 20px; border-radius:12px; max-width:80%}
+    @keyframes modalFadeIn{from{opacity:0; transform:scale(0.9)}to{opacity:1; transform:scale(1)}}
+    /* Mobile modal adjustments */
+    @media (max-width: 768px) {
+      .image-modal .modal-close{top:15px; right:15px; width:40px; height:40px; font-size:24px}
+      .image-modal .modal-nav{width:50px; height:50px; font-size:20px}
+      .image-modal .modal-nav.prev{left:15px}
+      .image-modal .modal-nav.next{right:15px}
+      .image-modal .modal-info{bottom:15px; padding:8px 12px; font-size:14px}
+    }
+    /* Clickable images indicator */
+    figure.image{position:relative; cursor:pointer}
+    figure.image::after{content:"🔍"; position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.7); color:#fff; padding:5px 8px; border-radius:6px; font-size:12px; opacity:0; transition:opacity 0.3s ease; pointer-events:none}
+    figure.image:hover::after{opacity:1}
+    .carousel-slide{position:relative; cursor:zoom-in}
+    .carousel-slide::after{content:"🔍"; position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.7); color:#fff; padding:5px 8px; border-radius:6px; font-size:12px; opacity:0; transition:opacity 0.3s ease; pointer-events:none; z-index:10}
+    .carousel-slide:hover::after{opacity:1}
+    /* Responsive carousel */
+    @media (max-width: 768px) {
+      .carousel-slide img:hover{transform:scale(1.03) translateY(-3px)}
+      .carousel-nav{width:40px; height:40px}
+      .carousel-nav i{font-size:14px}
+      .carousel-nav.prev{left:-15px}
+      .carousel-nav.next{right:-15px}
+    }
+    @media (max-width: 480px) {
+      .video-carousel{margin:1rem 0; padding:1rem 0.5rem}
+      .carousel-nav{display:none} /* Hide nav buttons on small screens, use wheel/dots only */
+    }
+    /* Responsive logos */
+    @media (max-width: 768px) {
+      .inst-logos{gap:2rem}
+      .inst-logos img{height:64px}
+    }
+    @media (max-width: 480px) {
+      .inst-logos{gap:1.5rem}
+      .inst-logos img{height:56px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a class="navbar-item" href="#top" style="font-weight:800">
+      <img src="./static/images/stability.png" style="height:28px;margin-right:.5rem"> SP4D
+    </a>
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div id="navbarMenu" class="navbar-menu">
+    <div class="navbar-end">
+      <a class="navbar-item" href="#abstract">Abstract</a>
+      <a class="navbar-item" href="#method">Method</a>
+      <a class="navbar-item" href="#results">Results</a>
+      <a class="navbar-item" href="#BibTeX">BibTeX</a>
+      <a class="navbar-item" href="./static/videos/Stable_Part_Diffusion_NeurIPS_2025.pdf" target="_blank">
+        <span class="icon"><i class="fas fa-file-pdf"></i></span><span>&nbsp;Paper</span></a>
+      <a class="navbar-item" href="#" style="opacity: 0.5; cursor: not-allowed;"><span class="icon"><i class="fab fa-github"></i></span><span>&nbsp;Code</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="has-text-centered">
+        <h1 class="title is-1 publication-title">
+          <span class="stability-brand">Stable Part Diffusion 4D</span>: Multi-View RGB and Kinematic Parts Video Generation
+        </h1>
+
+        <!-- Authors -->
+        <p class="is-size-5" style="margin-top:1rem">
+          <a href="https://haoz19.github.io/" target="_blank">Hao Zhang</a><sup>1,2,*</sup>,
+          <a href="https://chhankyao.github.io/" target="_blank">Chun-Han Yao</a><sup>1</sup>,
+          <a href="https://donnessime.github.io/" target="_blank">Simon Donné</a><sup>1</sup>,
+          <a href="https://ece.illinois.edu/about/directory/emeritus/n-ahuja" target="_blank">Narendra Ahuja</a><sup>2</sup>,
+          <a href="https://varunjampani.github.io/" target="_blank">Varun Jampani</a><sup>1</sup>
+        </p>
+        <p class="is-size-6" style="color:#6b7280;margin-top:.25rem">
+          <sup>1</sup>Stability AI &nbsp;&nbsp; <sup>2</sup>University of Illinois at Urbana-Champaign
+        </p>
+
+        <!-- ✨ Enhanced Institution icons -->
+        <div style="margin-top:0.0rem; padding-top:0.5rem; border-top:1px solid var(--border-color);">
+          <div class="inst-logos">
+            <a href="https://stability.ai" target="_blank" rel="noopener" aria-label="Stability AI">
+              <img src="./static/images/stability.png" alt="Stability AI">
+            </a>
+            <a href="https://illinois.edu" target="_blank" rel="noopener" aria-label="UIUC">
+              <img src="./static/images/uiuc.png" alt="University of Illinois Urbana-Champaign">
+            </a>
+          </div>
+        </div>
+        <p class="has-text-centered is-size-6 mt-2" style="color:#6b7280;">
+          <sup>*</sup>Work done as a research intern at Stability AI
+        </p>
+
+
+        <div class="column has-text-centered">
+          <div class="publication-links">
+            <!-- PDF Link. -->
+            <span class="link-block">
+              <a href="./static/videos/Stable_Part_Diffusion_NeurIPS_2025.pdf"
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                    <i class="fas fa-file-pdf"></i>
+                </span>
+                <span>Paper</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="#"
+                 class="external-link button is-normal is-rounded is-dark" style="opacity: 0.5; cursor: not-allowed;" disabled>
+                <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                </span>
+                <span>arXiv (Coming Soon)</span>
+              </a>
+            </span>
+            <!-- Code Link. -->
+            <span class="link-block">
+              <a href="#"
+                 class="external-link button is-normal is-rounded is-dark" style="opacity: 0.5; cursor: not-allowed;" disabled>
+                <span class="icon">
+                    <i class="fab fa-github"></i>
+                </span>
+                <span>Code (Coming Soon)</span>
+                </a>
+            </span>
+            <!-- Video Link. -->
+            <span class="link-block">
+              <a href="#teaser"
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                    <i class="fas fa-play"></i>
+                </span>
+                <span>Video</span>
+                </a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- 🦖 Teaser Image with Combined Caption -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full">
+        <figure class="image teaser-figure" style="margin: 0;">
+          <img src="./static/videos/fig1_1.png" alt="Figure 1 – Overview of SP4D: Stable Part Diffusion 4D transforms single images into multi-view, multi-frame sequences with kinematic part segmentations" style="width: 100%; height: auto; margin-bottom: 0.2rem;">
+        </figure>
+        <div class="figure-note" style="margin-top: 1rem; max-width: 95%; margin-left: auto; margin-right: auto;">
+          <div style="margin-bottom: 1rem;">
+            <span style="font-weight: 600; color: #2d3748; font-size: 1.1rem;">Figure 1 – Overview of SP4D</span>
+          </div>
+          <p style="line-height: 1.6; margin-bottom: 0;">
+            <strong>Stable Part Diffusion 4D (SP4D)</strong> transforms a single image or video into multi-view, multi-frame sequences with temporally consistent kinematic part segmentations. Unlike methods that only generate appearance, SP4D captures both visual structure and articulated geometry, producing animation-ready 3D assets with part-aware rigging capabilities.
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+
+    <!-- Demo Video Section -->
+    <div class="columns is-centered has-text-centered mt-6" id="teaser">
+      <div class="column is-four-fifths">
+        <div class="video-section">
+          <h2 class="title is-4">
+            SP4D Demo
+          </h2>
+          <div class="video-container">
+            <!-- YouTube embed placeholder - replace with actual video URL when available -->
+            <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; /* 16:9 aspect ratio */">
+              <iframe 
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                title="SP4D Demo Video"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: 8px;"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+              </iframe>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.9rem; color: #6b7280; text-align: center; font-style: italic;">
+              🎬 Demo video will be available on YouTube soon
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</section>
+
+
+
+<!-- Abstract -->
+<section class="section" id="abstract">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Abstract</h2>
+    <div class="content is-size-6">
+      <p>
+        We present <strong>Stable Part Diffusion 4D (SP4D)</strong>, a framework for generating paired RGB and kinematic part videos from monocular inputs. Unlike conventional part segmentation methods that rely on appearance-based semantic cues, SP4D learns to produce <em>kinematic parts</em> — structural components aligned with object articulation and consistent across views and time.
+      </p>
+      <p>
+        SP4D adopts a dual-branch diffusion model that jointly synthesizes RGB frames and corresponding part segmentation maps. To simplify architecture and flexibly enable different part counts, we introduce a <strong>spatial color encoding</strong> scheme that maps part masks to continuous RGB-like images. This encoding allows the segmentation branch to share the latent VAE from the RGB branch, while enabling part segmentation to be recovered via straightforward post-processing.
+      </p>
+      <p>
+        A <strong>Bidirectional Diffusion Fusion (BiDiFuse)</strong> module enhances cross-branch consistency, supported by a <strong>contrastive part consistency loss</strong> to promote spatial and temporal alignment of part predictions. We demonstrate that the generated 2D part maps can be lifted to 3D to derive skeletal structures and harmonic skinning weights with few manual adjustments.
+      </p>
+      <p>
+        To train and evaluate SP4D, we construct <strong>KinematicParts20K</strong>, a curated dataset of over 20K rigged objects selected and processed from Objaverse XL, each paired with multi-view RGB and part video sequences. Experiments show that SP4D generalizes strongly to diverse scenarios, including real-world videos, novel generated objects, and rare articulated poses, producing kinematic-aware outputs suitable for downstream animation and motion-related tasks.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Method -->
+<section class="section alt" id="method">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Method Overview</h2>
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <figure class="image">
+          <img src="./static/videos/fig2-1.png" alt="Figure 2 – Model Architecture: SP4D dual-branch diffusion model with BiDiFuse module for RGB and kinematic part generation">
+        </figure>
+        <p class="figure-note" style="margin-top:1rem">
+          <strong>Figure 2 – Model Architecture</strong><br>
+          SP4D builds on SV4D 2.0 and introduces a dual-branch architecture: one branch generates RGB frames, and the other produces kinematic part segmentations. A BiDiFuse module enables bidirectional information exchange between the two branches, ensuring coherence between appearance and structure. In addition, a contrastive consistency loss enforces that the same part remains stable across different views and time steps.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Results -->
+<section class="section" id="results">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Results</h2>
+
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <figure class="image">
+          <img src="./static/videos/fig3-1.png" alt="Figure 3 – Limitations of prior methods: Comparison showing challenges with existing segmentation and rigging approaches">
+        </figure>
+        <p class="figure-note" style="margin-top:1rem">
+          <strong>Figure 3 – Limitations of prior methods</strong><br>
+          Conventional approaches struggle with kinematic reasoning. Appearance-driven 2D segmentation models, such as SAM2, fail to capture motion-consistent parts. State-of-the-art 3D rigging methods often rely on category-specific priors and thus generalize poorly to novel shapes. Meanwhile, existing 3D segmentation methods focus on semantic regions (like "head" or "leg") rather than physically meaningful articulated parts, which limits their usefulness for animation.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered" style="margin-top:2rem">
+      <div class="column is-full">
+        <figure class="image">
+          <img src="./static/videos/fig4-1.png" alt="Figure 4 – Multi-view kinematic part results: Consistent part decompositions across synthetic and real-world videos">
+        </figure>
+        <p class="figure-note" style="margin-top:1rem">
+          <strong>Figure 4 – Multi-view kinematic part results</strong><br>
+          Qualitative results show that SP4D is able to produce consistent kinematic part decompositions across both synthetic and real-world videos. The generated parts remain stable across multiple views and frames, even for diverse object categories and complex motions. Input frames are highlighted in purple boxes.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered" style="margin-top:2rem">
+      <div class="column is-full">
+        <figure class="image">
+          <img src="./static/videos/fig5-1.png" alt="Figure 5 – Comparison with SAM2: SP4D produces more structured decompositions aligned with object articulation">
+        </figure>
+        <p class="figure-note" style="margin-top:1rem">
+          <strong>Figure 5 – Comparison with SAM2</strong><br>
+          Compared to SAM2, SP4D produces decompositions that are more structured and better aligned with object articulation. The parts are not only clearer and more consistent across views, but also directly useful for downstream rigging and animation tasks.
+        </p>
+      </div>
+    </div>
+
+    <!-- Video Demonstrations -->
+    <div style="margin-top:3rem;">
+      <h3 class="title is-4 has-text-centered" style="margin-bottom:2rem;">Video Demonstrations</h3>
+      
+      <!-- Cross-frame generation -->
+      <div style="margin-bottom:2.5rem;">
+        <h4 class="title is-5 has-text-centered" style="margin-bottom:1rem; color:#1f2937;">Cross-frame generation</h4>
+        <p class="is-size-6 has-text-centered" style="margin-bottom:2rem; color:#4b5563; max-width:700px; margin-left:auto; margin-right:auto; line-height:1.6;">
+          In a fixed camera view, SP4D maintains temporal coherence of the predicted parts throughout the motion. The generated segmentations remain stable even as the object undergoes large deformations, leading to more physically meaningful and reliable decompositions across time.
+        </p>
+        <div class="video-carousel" data-carousel="sec1">
+          <div class="carousel-wrapper">
+            <div class="carousel-track">
+              <div class="carousel-slide active">
+                <img src="./static/videos/sec1-1.gif" alt="Cross-frame generation - Example 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec1-2.gif" alt="Cross-frame generation - Example 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec1-3.gif" alt="Cross-frame generation - Example 3">
+              </div>
+            </div>
+            <div class="carousel-nav prev" onclick="moveSlide('sec1', -1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="carousel-nav next" onclick="moveSlide('sec1', 1)"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="carousel-dots">
+            <div class="carousel-dot active" onclick="currentSlide('sec1', 1)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec1', 2)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec1', 3)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cross-view generation -->
+      <div style="margin-bottom:2.5rem;">
+        <h4 class="title is-5 has-text-centered" style="margin-bottom:1rem; color:#1f2937;">Cross-view generation</h4>
+        <p class="is-size-6 has-text-centered" style="margin-bottom:2rem; color:#4b5563; max-width:700px; margin-left:auto; margin-right:auto; line-height:1.6;">
+          SP4D can take a single input video and expand it into multiple viewpoints, generating both RGB sequences and corresponding part segmentations. This ensures that the articulated structure of the object is preserved consistently, no matter the viewpoint, which is critical for 3D reconstruction and animation pipelines.
+        </p>
+        <div class="video-carousel" data-carousel="sec2">
+          <div class="carousel-wrapper">
+            <div class="carousel-track">
+              <div class="carousel-slide active">
+                <img src="./static/videos/sec2-1.gif" alt="Cross-view generation - Example 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec2-2.gif" alt="Cross-view generation - Example 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec2-3.gif" alt="Cross-view generation - Example 3">
+              </div>
+            </div>
+            <div class="carousel-nav prev" onclick="moveSlide('sec2', -1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="carousel-nav next" onclick="moveSlide('sec2', 1)"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="carousel-dots">
+            <div class="carousel-dot active" onclick="currentSlide('sec2', 1)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec2', 2)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec2', 3)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lifting 2D part maps to 3D -->
+      <div style="margin-bottom:2.5rem;">
+        <h4 class="title is-5 has-text-centered" style="margin-bottom:1rem; color:#1f2937;">Lifting 2D part maps to 3D</h4>
+        <p class="is-size-6 has-text-centered" style="margin-bottom:2rem; color:#4b5563; max-width:700px; margin-left:auto; margin-right:auto; line-height:1.6;">
+          SP4D enables the conversion of single images into fully riggable 3D assets. Starting from a single input image, we generate multi-view RGB sequences and part segmentations, then apply Hunyuan 3D 2.0 to reconstruct 3D geometry. Through vertex clustering with HDBSCAN, each mesh vertex receives discrete part IDs, creating complete 3D assets with geometry, part decomposition, and skinning weights ready for animation.
+        </p>
+        <div class="video-carousel" data-carousel="sec3">
+          <div class="carousel-wrapper">
+            <div class="carousel-track">
+              <div class="carousel-slide active">
+                <img src="./static/videos/sec3-1.gif" alt="Lifting 2D to 3D - Example 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec3-2.gif" alt="Lifting 2D to 3D - Example 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec3-3.gif" alt="Lifting 2D to 3D - Example 3">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec3-4.gif" alt="Lifting 2D to 3D - Example 4">
+              </div>
+            </div>
+            <div class="carousel-nav prev" onclick="moveSlide('sec3', -1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="carousel-nav next" onclick="moveSlide('sec3', 1)"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="carousel-dots">
+            <div class="carousel-dot active" onclick="currentSlide('sec3', 1)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec3', 2)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec3', 3)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec3', 4)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rigging and animation -->
+      <div style="margin-bottom:2.5rem;">
+        <h4 class="title is-5 has-text-centered" style="margin-bottom:1rem; color:#1f2937;">Rigging and animation</h4>
+        <p class="is-size-6 has-text-centered" style="margin-bottom:2rem; color:#4b5563; max-width:700px; margin-left:auto; margin-right:auto; line-height:1.6;">
+          The kinematic part maps generated by SP4D can be lifted into 3D meshes and used to estimate skinning weights without requiring explicit skeleton annotations. This enables automatic rigging of the object, turning the generated assets into fully animatable 3D models. As a result, SP4D bridges the gap between raw visual generation and practical animation-ready content.
+        </p>
+        <div class="video-carousel" data-carousel="sec4">
+          <div class="carousel-wrapper">
+            <div class="carousel-track">
+              <div class="carousel-slide active">
+                <img src="./static/videos/sec4-1.gif" alt="Rigging and animation - Example 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec4-2.gif" alt="Rigging and animation - Example 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="./static/videos/sec4-3.gif" alt="Rigging and animation - Example 3">
+              </div>
+            </div>
+            <div class="carousel-nav prev" onclick="moveSlide('sec4', -1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="carousel-nav next" onclick="moveSlide('sec4', 1)"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="carousel-dots">
+            <div class="carousel-dot active" onclick="currentSlide('sec4', 1)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec4', 2)"></div>
+            <div class="carousel-dot" onclick="currentSlide('sec4', 3)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- BibTeX -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered" style="color:#111827">BibTeX</h2>
+    <div class="content">
+<pre><code>@article{zhang2025sp4d,
+  title   = {Stable Part Diffusion 4D: Joint RGB and Kinematic-Parts Video Generation from Monocular Input},
+  author  = {Hao Zhang and Chun-Han Yao and Simon Donn{\'e} and Narendra Ahuja and Varun Jampani},
+  journal = {arXiv preprint},
+  year    = {2025}
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link"
+         href="./static/videos/Stable_Part_Diffusion_NeurIPS_2025.pdf" class="external-link" disabled>
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="#" class="external-link" style="opacity: 0.5; cursor: not-allowed;" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+      <p style="margin-top:.5rem">
+        This website is licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+        Website source code based on the Nerfies project page. If you want to reuse their <a
+          href="https://github.com/nerfies/nerfies.github.io">source code</a>, please credit them appropriately.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- Image Modal -->
+<div class="image-modal" id="imageModal">
+  <div class="modal-close" onclick="closeImageModal()">&times;</div>
+  <div class="modal-nav prev" onclick="prevModalImage()" style="display:none;">
+    <i class="fas fa-chevron-left"></i>
+  </div>
+  <div class="modal-nav next" onclick="nextModalImage()" style="display:none;">
+    <i class="fas fa-chevron-right"></i>
+  </div>
+  <img id="modalImage" src="" alt="">
+  <div class="modal-info" id="modalInfo"></div>
+</div>
+
+</body>
+</html>
